@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: phpdeploy
+  name: phpdeploy
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5 
+  selector:
+    matchLabels:
+      app: phpdeploy
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: phpdeploy
+    spec:
+      volumes:
+      - name: www-storage
+        emptyDir: {}
+      containers:
+      - image: acrdemodefender.azurecr.io/aksdemodefender
+      #- image: acrgithubcicd.azurecr.io/docker-build-php:v1
+        imagePullPolicy: Always
+        name: docker-build-php
+        env:
+        - name: MYSQL_SERVER
+          valueFrom:
+            secretKeyRef:
+              name: phpsecret
+              key: mysqlserver
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: phpsecret
+              key: mysqluser
+        - name: MYSQL_PASS
+          #value: password123
+          valueFrom:
+            secretKeyRef:
+              name: mysqlserver
+              key: dbpassword
+        - name: MYSQL_DB
+          valueFrom:
+            secretKeyRef:
+              name: phpsecret
+              key: mysqldb      
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+status: {}
