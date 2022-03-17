@@ -147,9 +147,6 @@
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_name'))]"
       ],
-      "tags": {
-        //"hidden-DevOpsInfo:GH:pranabpaul-tech/defenderdemo:main:deploytoAksCluster.yml:deploytoAksCluster.yml:1cb4e931:newdev:1622899593979.3;": ""
-      },
       "sku": {
         "name": "Basic",
         "tier": "Free"
