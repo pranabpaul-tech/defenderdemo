@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "aksdemodefender-7720"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "aksdemodefender-7720"
+  template:
+    metadata:
+      labels:
+        app: "aksdemodefender-7720"
+    spec:
+      containers:
+        - name: "aksdemodefender-7720"
+          image: "acrdemodefender.azurecr.io/aksdemodefender"
+          ports:
+          - containerPort: 80
