@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: acrdemodefender.azurecr.io
+        username: ${{ secrets.acr_acrdemodefender_username }}
+        password: ${{ secrets.acr_acrdemodefender_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/src/mysql" -f  "src/mysql/Dockerfile" -t acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }} --label dockerfile-path=src/mysql/Dockerfile
+        docker push acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_aksdemodefender_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep aksdemodefender852f | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace aksdemodefender852f`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: aksdemodefender852f
+        container-registry-url: acrdemodefender.azurecr.io
+        container-registry-username: ${{ secrets.acr_acrdemodefender_username }}
+        container-registry-password: ${{ secrets.acr_acrdemodefender_password }}
+        secret-name: aksdemodefendockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: aksdemodefender852f
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}
+        imagepullsecrets: |
+          aksdemodefendockerauth
