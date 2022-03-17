@@ -45,7 +45,7 @@ jobs:
         namespace: ${{ env.NAMESPACE  }}
         container-registry-url: acrdemodefender.azurecr.io
         container-registry-username: ${{ secrets.acr_acrdemodefender_username }}
-        container-registry-password: ${{ acr_acrdemodefender_password }}
+        container-registry-password: ${{ secrets.acr_acrdemodefender_password }}
         secret-name: aksdemodefendockerauth
        
     - uses: azure/k8s-deploy@v1.2
