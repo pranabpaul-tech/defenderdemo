@@ -13,12 +13,12 @@ jobs:
         username: ${{ secrets.acr_acrdemodefender_username }}
         password: ${{ secrets.acr_acrdemodefender_password }}
 
-    # - uses: Azure/container-scan@v0 
-    #   name: Scan image for vulnerabilities
-    #   id: container-scan
-    #   continue-on-error: true
-    #   with:
-    #     image-name: acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php 
+    - uses: Azure/container-scan@v0 
+      name: Scan image for vulnerabilities
+      id: container-scan
+      continue-on-error: true
+      with:
+        image-name: acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php 
     
     - name: Build and push image to ACR
       id: build-image
@@ -26,12 +26,12 @@ jobs:
         docker build "$GITHUB_WORKSPACE/src/php" -f  "src/php/Dockerfile" -t acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php --label dockerfile-path=src/php/Dockerfile
         docker push acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php
 
-    # - name: Post logs to appinsights
-    #   uses: Azure/publish-security-assessments@v0
-    #   with: 
-    #     scan-results-path: ${{ steps.container-scan.outputs.scan-report-path }}
-    #     connection-string: ${{ secrets.AZ_APPINSIGHTS_CONNECTION_STRING }}
-    #     subscription-token: ${{ secrets.AZ_SUBSCRIPTION_TOKEN }} 
+    - name: Post logs to appinsights
+      uses: Azure/publish-security-assessments@v0
+      with: 
+        scan-results-path: ${{ steps.container-scan.outputs.scan-report-path }}
+        connection-string: ${{ secrets.AZ_APPINSIGHTS_CONNECTION_STRING }}
+        subscription-token: ${{ secrets.AZ_SUBSCRIPTION_TOKEN }} 
     
     - uses: azure/k8s-set-context@v1
       with:
