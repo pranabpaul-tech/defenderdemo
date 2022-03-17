@@ -25,7 +25,7 @@ spec:
       - name: www-storage
         emptyDir: {}
       containers:
-      - image: acrgithubcicd.azurecr.io/aksgithubcicd
+      - image: acrdemodefender.azurecr.io/aksdemodefender
       #- image: acrgithubcicd.azurecr.io/docker-build-php:v1
         imagePullPolicy: Always
         name: docker-build-php

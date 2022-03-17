@@ -16,7 +16,7 @@ spec:
       containers:
       - name: mysql-container
         #image: mysql
-        image: acrgithubcicd.azurecr.io/aksgithubcicd
+        image: acrdemodefender.azurecr.io/aksdemodefender
         env:
         - name: MYSQL_ROOT_PASSWORD
           # value: password

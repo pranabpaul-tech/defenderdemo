@@ -1,0 +1,62 @@
+on: [push]
+env: 
+  NAMESPACE: staging
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: acrdemodefender.azurecr.io
+        username: ${{ secrets.acr_acrdemodefender_username }}
+        password: ${{ secrets.acr_acrdemodefender_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/src/php" -f  "src/php/Dockerfile" -t acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php --label dockerfile-path=src/php/Dockerfile
+        docker push acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_aksdemodefender_kubeconfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep ${{ env.NAMESPACE  }} | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace ${{ env.NAMESPACE  }}`
+        fi
+        namespaceAkvPresent=`kubectl get namespace | grep akv2k8s | wc -l`
+        if [ $namespaceAkvPresent -eq 0 ]
+        then
+            echo `kubectl create namespace akv2k8s`
+            echo `helm repo add spv-charts https://charts.spvapi.no`
+            echo `helm repo update`
+            echo `helm upgrade --install akv2k8s spv-charts/akv2k8s --namespace akv2k8s`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: ${{ env.NAMESPACE  }}
+        container-registry-url: acrdemodefender.azurecr.io
+        container-registry-username: ${{ secrets.acr_acrdemodefender_username }}
+        container-registry-password: ${{ acr_acrdemodefender_password }}
+        secret-name: aksdemodefendockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: ${{ env.NAMESPACE  }}
+        manifests: |
+          manifests/phpstagingsecret.yaml
+          manifests/secret-sync.yaml
+          manifests/phpdeploy.yaml
+          manifests/phpservice.yaml
+        images: |
+          acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php
+        imagepullsecrets: |
+          aksdemodefendockerauth
