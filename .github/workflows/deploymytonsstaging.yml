@@ -17,14 +17,18 @@ jobs:
       id: build-image
       run: |
         docker build "$GITHUB_WORKSPACE/src/mysql" -f  "src/mysql/Dockerfile" -t acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-mysql --label dockerfile-path=src/mysql/Dockerfile
-        docker push acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-mysql
-
+    
     - uses: Azure/container-scan@v0 
       name: Scan image for vulnerabilities
       id: container-scan
       continue-on-error: true
       with:
         image-name: acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-mysql 
+
+    - name: Push image to ACR
+      id: push-image
+      run: |
+        docker push acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-mysql
 
     - name: Post logs to appinsights
       uses: Azure/publish-security-assessments@v0
