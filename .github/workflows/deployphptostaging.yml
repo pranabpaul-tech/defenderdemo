@@ -12,6 +12,12 @@ jobs:
         login-server: acrdemodefender.azurecr.io
         username: ${{ secrets.acr_acrdemodefender_username }}
         password: ${{ secrets.acr_acrdemodefender_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/src/php" -f  "src/php/Dockerfile" -t acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php --label dockerfile-path=src/php/Dockerfile
+        docker push acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php
 
     - uses: Azure/container-scan@v0 
       name: Scan image for vulnerabilities
@@ -19,12 +25,6 @@ jobs:
       continue-on-error: true
       with:
         image-name: acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php 
-    
-    - name: Build and push image to ACR
-      id: build-image
-      run: |
-        docker build "$GITHUB_WORKSPACE/src/php" -f  "src/php/Dockerfile" -t acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php --label dockerfile-path=src/php/Dockerfile
-        docker push acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-php
 
     - name: Post logs to appinsights
       uses: Azure/publish-security-assessments@v0
