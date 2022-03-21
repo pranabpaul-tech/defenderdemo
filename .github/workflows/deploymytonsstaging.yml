@@ -13,7 +13,7 @@ jobs:
         username: ${{ secrets.acr_acrdemodefender_username }}
         password: ${{ secrets.acr_acrdemodefender_password }}
     
-    - name: Build and push image to ACR
+    - name: Build image
       id: build-image
       run: |
         docker build "$GITHUB_WORKSPACE/src/mysql" -f  "src/mysql/Dockerfile" -t acrdemodefender.azurecr.io/aksdemodefender:${{ github.sha }}-mysql --label dockerfile-path=src/mysql/Dockerfile
